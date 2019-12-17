@@ -1,46 +1,50 @@
 //RGB LED: RED: 3, GREEN: 2, BLUE: 4
 
 // defines pins numbers
-const int REDPin = 3;
-const int GREENPin = 2;
-const int BLUEPin = 4;
-const int buzzerPin = 11;
-const int trigPin = 9;
-const int echoPin = 10;
-const int LightSensorPin = A0;
-const int LEDPin = 8;
-const int soilPin1 = A1;//Declare a variable for the soil moisture sensor 
-const int soilPin2 = A2;//Declare a variable for the soil moisture sensor 
-const int soilPin3 = A3;//Declare a variable for the soil moisture sensor 
-const int soilPower = 7;//Variable for Soil moisture Power
-const int PumpPin = 6; // Declare a variable for pump
-const int errorPin = 5; // declare pint for error
-int soilVal1 = 0; //value for storing moisture value
-int soilVal2 = 0; //value for storing moisture value
-int soilVal3 = 0; //value for storing moisture value 
-int soilCooldown=4;
-int pumpCounter=10;
-int pumpCooldown=5;
-long duration;
-int distance;
+const int REDPin = 3;// Initialize a variable for RED pin of the RGB LED
+const int GREENPin = 2;// Initialize a variable for GREEN pin of the RGB LED
+const int BLUEPin = 4;// Initialize a variable for BLUE pin of the RGB LED
+const int buzzerPin = 11;// Initialize a variable for the buzzer
+const int trigPin = 9;// Initialize a variable for the trigger pin of the Distance Measuring Ranging Transducer Sensor
+const int echoPin = 10;// Initialize a variable for echo pin of the Distance Measuring Ranging Transducer Sensor
+const int LightSensorPin = A0;// Initialize a variable for the light resistor
+const int LEDPin = 8;// Initialize a variable for the ON LED
+const int soilPin1 = A1;//Initialize a variable for the soil moisture sensor no. 1
+const int soilPin2 = A2;//Initialize a variable for the soil moisture sensor no. 2
+const int soilPin3 = A3;//Initialize a variable for the soil moisture sensor no. 3
+const int soilPower = 7;//Initialize variable for Soil moisture Power
+const int PumpPin = 6; // Initialize a variable for pump
+const int errorPin = 5; // Initialize pint for error LED
+int soilVal1 = 0; //Initialize value for storing moisture value
+int soilVal2 = 0; //Initialize value for storing moisture value
+int soilVal3 = 0; //Initialize value for storing moisture value 
+int soilCooldown=4;//Initialize value for how many "rounds" the moisture sensor wait until getting the sensor data
+int pumpCounter=10;//Initialize value for how many "rounds" the pump works before turning off
+int pumpCooldown=5;//Initialize value for how many "rounds" the pump wait until starting to work
+long duration;//declare value for the duration of the Distance Measuring Ranging Transducer Sensor
+int distance;//declare value for the distance of the Distance Measuring Ranging Transducer Sensor
 bool locsol=false;
-int counter=0;
-bool stopItNow=true;
+int counter=0; //Simply a counter for how many "rounds" the loop has been working
+bool stopItNow=true;//Bool value for interrupting the process
 
 void setup()
 {
-  pinMode(buzzerPin, OUTPUT);
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(errorPin, OUTPUT);//Set D5 as an OUTPUT
-  pinMode(soilPower, OUTPUT);//Set D7 as an OUTPUT
-  digitalWrite(PumpPin, HIGH);
-  digitalWrite(soilPower, HIGH);
-  pinMode(LightSensorPin, INPUT);
-  pinMode(2, OUTPUT);
-  pinMode(LEDPin, OUTPUT);
-  pinMode(PumpPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);//Set as an OUTPUT
+  pinMode(trigPin, OUTPUT);//Set as an OUTPUT
+  pinMode(echoPin, INPUT);//Set as an INPUT
+  pinMode(errorPin, OUTPUT);//Set as an OUTPUT
+  pinMode(soilPower, OUTPUT);//Set as an OUTPUT
+  //The next two values must be set to HIGH, because the relay connects the circuit if it gets 0 on its control pin
+  digitalWrite(PumpPin, HIGH);//Set the PumpPin to HIGH
+  digitalWrite(soilPower, HIGH);//Set the soilPower pin to HIGH
+  pinMode(LightSensorPin, INPUT);//Set as an INPUT
+  pinMode(REDPin, OUTPUT);//Set as an OUTPUT
+  pinMode(GREENPin, OUTPUT);//Set as an OUTPUT
+  pinMode(BLUEPin, OUTPUT);//Set as an OUTPUT
+  pinMode(LEDPin, OUTPUT);//Set as an OUTPUT
+  pinMode(PumpPin, OUTPUT);//Set as an OUTPUT
   Serial.begin(9600);
+  //beeps 3 times for start
   beep(50);
   beep(50);
   beep(50);
