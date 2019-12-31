@@ -52,6 +52,7 @@ void setup()
 
 void loop()
 {
+ // csak akkor fut le, ha a stopItNow valtozo true 
  if(!stopItNow){
    
   if(counter==0){
@@ -63,17 +64,19 @@ void loop()
   
   if(soilCooldown==1){
     digitalWrite(soilPower, LOW);//turn D7 "On"
-    delay(100);//wait 10 milliseconds 
+    delay(100);//wait 100 milliseconds 
     soilVal1 = analogRead(soilPin1);//Read the SIG value form sensor 
-    delay(100);//wait 2 milliseconds 
+    delay(100);//wait 100 milliseconds 
     soilVal2 = analogRead(soilPin2);//Read the SIG value form sensor 
-    delay(100);//wait 2 milliseconds 
+    delay(100);//wait 100 milliseconds 
     soilVal3 = analogRead(soilPin3);//Read the SIG value form sensor 
     digitalWrite(soilPower, HIGH);//turn D7 "Off"
   }
   int soilAtlag=(soilVal1+soilVal2+soilVal3)/3;
  
-  //vizresz
+  //A szivattyu akkor indul ha a mert nedvessegertekek atlaga lecsokken a tapasztalati minimumnak szamito 550-es ertekre
+  //A locsolast akkor hagyja abba, ha a nedvessegertek eleri a tapasztalati 610-es erteket.
+  //Az eppen megfelelo nedvessegerteket zold, a tul alacsony erteket piros, a ketto kozottit pedig kek szinnel jelzi.
 
   if(pumpCooldown==1){
     
@@ -87,7 +90,7 @@ void loop()
       }
     else{
         if(soilAtlag>610){
-             analogWrite(REDPin, 0);
+            analogWrite(REDPin, 0);
             analogWrite(GREENPin, 255);
             analogWrite(BLUEPin, 0);
             ontozes();
@@ -108,6 +111,7 @@ void loop()
         digitalWrite(PumpPin, HIGH);
         pumpCounter--;
     }
+   //Ha megallitja a locsolast, ha az ontozes legalabb 10 "korig" tartott.
   if(pumpCounter==0){
     ontozes();
     pumpCounter=10;
@@ -117,14 +121,17 @@ void loop()
   // read the value from the sensor
   int lightSensorValue = analogRead(LightSensorPin);
   
+   //Ha a fenyerzekelo a tapasztalati 775-os ertekre lecsokken, bekapcsolja a lampat. A villodzas elkerulese miatt itt is, mint a nedvessegerzekelesnel hiszterezissel szamoltam.
   if (lightSensorValue < 775) {
-    digitalWrite(LEDPin, LOW);
-  }
-  else{
-      if(lightSensorValue > 675) {
-        digitalWrite(LEDPin, HIGH);
-      }
+    if(lightSensorValue > 675) {
+      digitalWrite(LEDPin, HIGH);
     }
+    else{
+      digitalWrite(LEDPin, LOW);
+    }
+  else{
+      digitalWrite(LEDPin, HIGH);
+  }
 
   
    // Clears the trigPin
@@ -136,15 +143,17 @@ void loop()
   digitalWrite(trigPin, LOW);
   // Reads the echoPin, returns the sound wave travel time in microseconds
   duration = pulseIn(echoPin, HIGH);
-  // Calculating the distance
+  // Calculating the distance in cm
   distance = duration * 0.034 / 2;
+  // Az ures tartajra 18 cm-t mert a szenzor, igy amikor megkaphuk, hogy jelenleg mennyi a mert ertek, azt ha kivonjuk 18-bol, megkapjuk a vizszintet.
+  // Ha 2 cm-nel kevesebb a viz, akkor leall
   distance=18-distance;
   if(distance<=2)
   {
     stopItNow=true;
   }
 
-  
+  // kiirjuk a mert ertekeket a console-ra, ennek a tesztek soran volt jelentossege
   serialprint(lightSensorValue, distance, soilVal1, soilVal2, soilVal3);
 
    Serial.print("soilCooldown: ");
@@ -153,7 +162,8 @@ void loop()
    Serial.print(pumpCounter);
    Serial.print(", pumpCooldown: ");
    Serial.println(pumpCooldown);
-  soilCooldown--;
+  // A "kor" vegen csokkentjuk a cooldown valtozokat. ha 0-ra csokken, visszakapja az eredeti erteket, ezzel szabalyozhato, hogy egy adott egyseg hany "korig" uzemeljen/ne uzemeljen.
+   soilCooldown--;
   pumpCooldown--;
   if(soilCooldown==0){
     soilCooldown=4;
@@ -161,7 +171,8 @@ void loop()
   if(pumpCooldown==0){
       pumpCooldown=10;
     }
-   delay(2000); // Wait for 100 millisecond(s)
+   delay(2000); // Wait for 2 second(s)
+    
    counter++;
    Serial.print("Counter: ");
    Serial.println(counter);
@@ -169,7 +180,8 @@ void loop()
   }
   else
   {
-        
+      // Ha a locsol valtozo false erteken van, a program csipogassal es az error led felvillanasaval jelzi a problemat
+             
         // Clears the trigPin
         digitalWrite(trigPin, LOW);
         delayMicroseconds(2);
@@ -197,6 +209,7 @@ void loop()
   }
 }
 void ontozes(){
+      //meghivas eseten a locsol logikai erteket negalja
       if(locsol){
           locsol=false;
         }
@@ -204,6 +217,7 @@ void ontozes(){
           locsol=true;
         }
   }
+  //fuggveny a console-ra valo kiirashoz.
 void serialprint(int lightval, int distval, int soil1, int soil2, int soil3)
 {
   Serial.print("Locsolunk? ");
@@ -227,6 +241,7 @@ void serialprint(int lightval, int distval, int soil1, int soil2, int soil3)
   int soilAtlag=(soil1+soil2+soil3)/3;
   Serial.println(soilAtlag);
 }
+ //buzzer kezelo fuggveny
 void beep(unsigned char delayms){
   analogWrite(buzzerPin, 20);      // Almost any value can be used except 0 and 255
    delay(100);   
