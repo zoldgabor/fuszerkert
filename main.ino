@@ -129,6 +129,7 @@ void loop()
     else{
       digitalWrite(LEDPin, LOW);
     }
+  }
   else{
       digitalWrite(LEDPin, HIGH);
   }
