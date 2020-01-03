@@ -52,13 +52,33 @@ void setup()
 
 void loop()
 {
+   // Clears the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  // Calculating the distance in cm
+  distance = duration * 0.034 / 2;
+  // Az ures tartajra 15 cm-t mert a szenzor, igy amikor megkaphuk, hogy jelenleg mennyi a mert ertek, azt ha kivonjuk 15-bol, megkapjuk a vizszintet.
+  // Ha 2 cm-nel kevesebb a viz, akkor leall
+  distance=15-distance;
+  if(distance<=2||distance>15)
+  {
+    Serial.println("Fedel leveve!");
+    stopItNow=true;
+  }
  // csak akkor fut le, ha a stopItNow valtozo true 
  if(!stopItNow){
    
   if(counter==0){
-        pumpCooldown=4;
+        pumpCooldown=2;
+        soilCooldown=2;
         digitalWrite(PumpPin, LOW);
-        delay(4000);
+        delay(2000);
         digitalWrite(PumpPin, HIGH);
     }
   
@@ -85,15 +105,19 @@ void loop()
             analogWrite(REDPin, 255);
             analogWrite(GREENPin, 0);
             analogWrite(BLUEPin, 0);
-            ontozes();
+            if(!locsol){
+              ontozes();
           }
       }
+    }
     else{
         if(soilAtlag>610){
             analogWrite(REDPin, 0);
             analogWrite(GREENPin, 255);
             analogWrite(BLUEPin, 0);
-            ontozes();
+            if(locsol){
+              ontozes();
+            }
             pumpCounter=10;
             pumpCooldown=10;
           } 
@@ -102,18 +126,23 @@ void loop()
             analogWrite(REDPin, 0);
             analogWrite(GREENPin, 0);
             analogWrite(BLUEPin, 255);
+            if(locsol){
+              ontozes();
+            }
             }
       }
   }
   if(locsol){
         digitalWrite(PumpPin, LOW);
-        delay(5000);
+        delay(2000);
         digitalWrite(PumpPin, HIGH);
         pumpCounter--;
     }
-   //Ha megallitja a locsolast, ha az ontozes legalabb 10 "korig" tartott.
+   //Megallitja a locsolast, ha az ontozes legalabb 10 "korig" tartott.
   if(pumpCounter==0){
-    ontozes();
+    if(locsol){
+      ontozes();
+    }
     pumpCounter=10;
   }
   
@@ -135,24 +164,7 @@ void loop()
   }
 
   
-   // Clears the trigPin
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin on HIGH state for 10 micro seconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echoPin, HIGH);
-  // Calculating the distance in cm
-  distance = duration * 0.034 / 2;
-  // Az ures tartajra 18 cm-t mert a szenzor, igy amikor megkaphuk, hogy jelenleg mennyi a mert ertek, azt ha kivonjuk 18-bol, megkapjuk a vizszintet.
-  // Ha 2 cm-nel kevesebb a viz, akkor leall
-  distance=18-distance;
-  if(distance<=2)
-  {
-    stopItNow=true;
-  }
+  
 
   // kiirjuk a mert ertekeket a console-ra, ennek a tesztek soran volt jelentossege
   serialprint(lightSensorValue, distance, soilVal1, soilVal2, soilVal3);
@@ -181,7 +193,7 @@ void loop()
   }
   else
   {
-      // Ha a locsol valtozo false erteken van, a program csipogassal es az error led felvillanasaval jelzi a problemat
+      // Ha a stopItNow valtozo false erteken van, a program csipogassal es az error led felvillanasaval jelzi a problemat
              
         // Clears the trigPin
         digitalWrite(trigPin, LOW);
@@ -194,7 +206,7 @@ void loop()
         duration = pulseIn(echoPin, HIGH);
         // Calculating the distance
         distance = duration * 0.034 / 2;
-        distance=18-distance;
+        distance=15-distance;
         Serial.print("Vizszint!!!: ");
         Serial.println(distance);
         if(distance>2)
